@@ -25,9 +25,9 @@ Para publicar comercialmente se necesitan propiedades y fotografías autorizadas
 
 El catálogo prioriza Concepción y permite explorar destinos de Chile. Los destinos sin propiedades de ejemplo muestran un estado vacío. Cada alojamiento tiene una ruta compartible (`#alojamiento/1`), galería ampliable, descripción, servicios y zona de referencia.
 
-El panel de reserva valida fechas y capacidad, calcula noches, limpieza y servicio, y permite revisar el resumen antes de preparar la consulta. Los valores de limpieza ($20.000 CLP) y servicio (10%) son supuestos de demostración, no tarifas comerciales aprobadas. No hay calendario de disponibilidad, bloqueo de fechas, envío, pago ni confirmación real.
+El panel de reserva valida fechas y capacidad y permite revisar el resumen antes de preparar la consulta. El total del huésped es precio por noche × noches: no se añaden cargos por limpieza ni servicio FES. La comisión por los arriendos corresponde al acuerdo con el propietario, sin porcentaje fijado aún; no se calcula ni cobra al huésped. La limpieza está incluida para los departamentos administrados por FES. No hay calendario de disponibilidad, bloqueo de fechas, envío, pago ni confirmación real.
 
-Validado en Chromium: prioridad de Concepción, filtros, navegación y enlaces directos, galería, favoritos, rechazo de fechas inválidas, cálculo de tres noches ($144.000 + $20.000 + $14.400 = $178.400), resumen y formulario de solicitud. Comprobado ancho móvil de 390 px sin desbordamiento horizontal. Prueba funcional con recursos externos bloqueados; no valida la descarga de fotografías ni fuentes remotas.
+Validado en Chromium: prioridad de Concepción, filtros, navegación y enlaces directos, galería, favoritos, rechazo de fechas inválidas, cálculo de tres noches ($48.000 × 3 = $144.000, sin cargos adicionales), resumen y formulario de solicitud. Comprobado ancho móvil de 390 px sin desbordamiento horizontal. Prueba funcional con recursos externos bloqueados; no valida la descarga de fotografías ni fuentes remotas.
 
 ## Identidad y atención
 
