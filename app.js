@@ -131,14 +131,48 @@ function route() {
   FESDates.enhance(form); updateQuote(); bindHelp(detail); window.scrollTo(0, 0);
 }
 function showReview() {
+  if (!reservation) return;
   const r = { ...reservation }; const p = selectedProperty;
+  const dateLabel = value => new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
   const review = document.createElement('dialog'); review.className = 'reservation-review';
-  review.innerHTML = `<button class="close-dialog" aria-label="Cerrar resumen">×</button><div class="eyebrow">REVISA TU VIAJE</div><h2>Tu próxima pausa en ${p.city}</h2><p><strong>${p.name}</strong></p><div class="review-trip"><div><strong>Fechas</strong><span>${new Date(r.arrival + 'T12:00:00').toLocaleDateString('es-CL')} → ${new Date(r.departure + 'T12:00:00').toLocaleDateString('es-CL')} · ${r.nights} noches</span></div><div><strong>Huéspedes</strong><span>${r.guests}</span></div></div><div class="review-cost"><p>Alojamiento <span>${currency(r.subtotal)}</span></p><p><strong>Total estimado · CLP</strong><strong>${currency(r.total)}</strong></p></div><p class="reference-note">Esta es una simulación. No confirma disponibilidad, no bloquea fechas ni realiza cobros.</p><button class="primary" id="continue-request">Continuar con mis datos →</button>`;
-  document.body.append(review); review.querySelector('.close-dialog').onclick = () => review.close(); review.addEventListener('close', () => review.remove());
-  review.querySelector('#continue-request').onclick = () => { review.close(); openInquiry(`Solicitud: ${p.name}`, `Revisa tus datos para preparar tu solicitud. Total estimado: ${currency(r.total)} CLP. No se confirma una reserva.`, `Alojamiento: ${p.name}, ${p.city}.\nLlegada: ${r.arrival}. Salida: ${r.departure}.\n${r.guests} huéspedes · ${r.nights} noches.\nAlojamiento: ${currency(r.subtotal)}. Sin cargos adicionales por limpieza ni servicio FES.\nTotal estimado: ${currency(r.total)} CLP.`); };
+  review.setAttribute('aria-labelledby', 'review-title');
+  review.innerHTML = `<button class="close-dialog" aria-label="Cerrar resumen">×</button><div class="eyebrow">TU ESTADÍA CON FES</div><h2 id="review-title">Revisa y continúa</h2><div class="review-card"><div class="review-property"><img src="${photoUrl(p.image)}" alt="Foto de referencia de ${p.name}"><div><h3>${p.name}</h3><p>${p.area}, ${p.city}</p><span>Alojamiento completo · Ejemplo</span></div></div><div class="review-row"><div><h3>Fechas</h3><p>${dateLabel(r.arrival)} → ${dateLabel(r.departure)}</p><small>${r.nights} noche${r.nights === 1 ? '' : 's'}</small></div><button class="review-action" id="change-review-dates">Cambiar<span class="sr-only"> fechas</span></button></div><div class="review-row"><div><h3>Huéspedes</h3><p id="review-guest-count">${r.guests} huésped${Number(r.guests) === 1 ? '' : 'es'}</p><label id="review-guest-editor" hidden>Selecciona huéspedes<select aria-label="Cambiar cantidad de huéspedes">${Array.from({ length: p.guests }, (_, i) => `<option value="${i + 1}" ${Number(r.guests) === i + 1 ? 'selected' : ''}>${i + 1} huésped${i ? 'es' : ''}</option>`).join('')}</select></label></div><button class="review-action" id="change-review-guests" aria-expanded="false">Cambiar<span class="sr-only"> huéspedes</span></button></div><div class="review-row review-total-row"><div><h3>Precio total</h3><p class="review-total">${currency(r.total)} <span>CLP</span></p></div><button class="review-action" id="review-price-details">Detalles<span class="sr-only"> del precio</span></button></div><p class="review-included">Sin recargos por limpieza ni servicio FES.</p></div><p class="reference-note">Esta es una simulación. No confirma disponibilidad, no bloquea fechas ni realiza cobros.</p><button class="primary" id="continue-request">Continuar con mis datos →</button>`;
+  const closeReview = () => { review.close(); review.remove(); };
+  document.body.append(review);
+  review.querySelector('.close-dialog').onclick = () => closeReview();
+  review.addEventListener('close', () => review.remove());
+  review.querySelector('#change-review-dates').onclick = () => {
+    // Keep the review open while the shared calendar edits the booking form.
+    const calendar = document.querySelector('#date-picker');
+    calendar.addEventListener('close', () => {
+      if (!review.open) return;
+      closeReview();
+      if (reservation) { showReview(); document.querySelector('#change-review-dates')?.focus(); }
+      else document.querySelector('#booking-form [data-date-field=arrival]')?.focus();
+    }, { once: true });
+    document.querySelector('#booking-form [data-date-field=arrival]').click();
+  };
+  const editor = review.querySelector('#review-guest-editor');
+  review.querySelector('#change-review-guests').onclick = event => {
+    editor.hidden = !editor.hidden;
+    event.currentTarget.setAttribute('aria-expanded', String(!editor.hidden));
+    if (!editor.hidden) editor.querySelector('select').focus();
+  };
+  editor.querySelector('select').onchange = event => {
+    r.guests = event.target.value;
+    document.querySelector('#booking-form').elements.guests.value = r.guests;
+    updateQuote();
+    review.querySelector('#review-guest-count').textContent = `${r.guests} huésped${Number(r.guests) === 1 ? '' : 'es'}`;
+  };
+  review.querySelector('#review-price-details').onclick = () => {
+    const price = document.createElement('dialog'); price.className = 'price-sheet'; price.setAttribute('aria-labelledby', 'price-sheet-title');
+    price.innerHTML = `<button class="close-dialog" aria-label="Cerrar información del precio">×</button><h2 id="price-sheet-title">Información del precio</h2><div class="price-nightly"><span>${r.nights} noche${r.nights === 1 ? '' : 's'} ×<br>${currency(p.price)} CLP</span><strong>${currency(r.subtotal)} CLP</strong></div><div class="price-sheet-total"><strong>Total CLP</strong><strong>${currency(r.total)} CLP</strong></div><details class="price-explanation"><summary>Desglose del precio</summary><p>El total corresponde al valor por noche multiplicado por la cantidad de noches de tu estadía. No se añaden cargos por limpieza ni servicio FES.</p><p>En los departamentos administrados por FES, la limpieza está incluida.</p></details>`;
+    document.body.append(price);price.querySelector('.close-dialog').onclick = () => price.close();
+    price.addEventListener('close', () => { price.remove(); if (review.open) review.querySelector('#review-price-details').focus(); });price.showModal();
+  };
+  review.querySelector('#continue-request').onclick = () => { closeReview(); openInquiry(`Solicitud: ${p.name}`, `Revisa tus datos para preparar tu solicitud. Total estimado: ${currency(r.total)} CLP. No se confirma una reserva.`, `Alojamiento: ${p.name}, ${p.city}.\nLlegada: ${r.arrival}. Salida: ${r.departure}.\n${r.guests} huéspedes · ${r.nights} noches.\nAlojamiento: ${currency(r.subtotal)}. Sin cargos adicionales por limpieza ni servicio FES.\nTotal estimado: ${currency(r.total)} CLP.`); };
   review.showModal();
 }
-
 
 
 const helpDialog = document.querySelector('#help-dialog');

@@ -67,3 +67,9 @@ La publicación requiere una cuenta de hosting y aún no se ha realizado desde e
 El sitio también funciona publicado directamente desde la raíz de `main`: usa rutas relativas, imágenes locales y navegación por fragmentos. No necesita Netlify ni una compilación para GitHub Pages.
 
 En el repositorio, abrir **Settings → Pages → Build and deployment**, elegir **Deploy from a branch**, rama **main**, carpeta **/(root)** y guardar. GitHub mostrará el enlace de publicación cuando termine. El archivo `.nojekyll` permite servir los archivos estáticos directamente.
+
+## Revisión de estadía
+
+El resumen «Revisa y continúa» incluye foto, fechas y huéspedes editables, y precio total. «Detalles» abre un panel separado de información del precio (desde abajo en móvil) con noches × tarifa y total, sin recargos al huésped. La comisión al propietario no se muestra como cargo en este flujo. No se inventan reseñas, calificaciones ni descuentos.
+
+Validado en Chromium: cambio de fechas y huéspedes desde el resumen, cancelación del calendario, recálculo de 3 a 4 noches ($144.000 a $192.000), actualización de la solicitud, detalle del precio y foco al cerrar. Panel comprobado a 320, 390, 820 y 1440 px.
